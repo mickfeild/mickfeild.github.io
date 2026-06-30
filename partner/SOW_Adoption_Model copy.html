@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOW managed services adoption model</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    background: #f5f5f3;
+    color: #2c2c2a;
+    min-height: 100vh;
+    padding: 24px 16px 48px;
+  }
+
+  .container { max-width: 900px; margin: 0 auto; }
+
+  .page-title {
+    font-size: 13px; font-weight: 500; letter-spacing: 0.05em;
+    color: #888780; text-transform: uppercase; margin-bottom: 6px;
+  }
+  .page-heading {
+    font-size: 22px; font-weight: 600; color: #0f6e56; margin-bottom: 4px;
+  }
+  .page-sub {
+    font-size: 14px; color: #5f5e5a; margin-bottom: 24px; line-height: 1.6;
+    max-width: 680px;
+  }
+
+  /* Phase nav */
+  .phase-nav {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px;
+  }
+  .pbtn {
+    padding: 12px 10px; border: 1.5px solid #d3d1c7;
+    background: #fff; color: #5f5e5a; border-radius: 8px;
+    cursor: pointer; font-size: 12px; font-weight: 600;
+    text-align: center; line-height: 1.4; transition: all 0.15s;
+  }
+  .pbtn span { display: block; font-weight: 400; font-size: 11px; margin-top: 2px; color: #888780; }
+  .pbtn.on { border-color: var(--ph-color); background: var(--ph-light); color: var(--ph-dark); }
+  .pbtn.on span { color: var(--ph-color); }
+  .pbtn:hover:not(.on) { border-color: #888780; color: #2c2c2a; }
+
+  /* Cumulative bar */
+  .cum-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
+  .cum-bar-label { font-size: 11px; color: #888780; white-space: nowrap; }
+  .cum-dots { display: flex; gap: 4px; flex: 1; max-width: 180px; }
+  .sdot { flex: 1; height: 4px; border-radius: 2px; background: #d3d1c7; transition: background 0.2s; }
+  .sdot.on { background: var(--ph-color); }
+
+  /* Section tabs */
+  .stabs {
+    display: flex; gap: 0; border-bottom: 1.5px solid #d3d1c7;
+    margin-bottom: 18px; overflow-x: auto; padding-bottom: 0;
+  }
+  .stab {
+    padding: 8px 14px; background: none; border: none;
+    border-bottom: 2.5px solid transparent; margin-bottom: -1.5px;
+    cursor: pointer; color: #888780; font-size: 13px; font-weight: 400;
+    white-space: nowrap; transition: all 0.1s;
+  }
+  .stab.on { color: #2c2c2a; border-bottom-color: var(--ph-color); font-weight: 600; }
+
+  /* Phase header */
+  .phase-hdr { font-size: 17px; font-weight: 600; color: #2c2c2a; margin-bottom: 8px; }
+  .meta-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 11px; border-radius: 20px; font-size: 12px;
+    background: #fff; border: 1px solid #d3d1c7; color: #5f5e5a;
+  }
+
+  /* Content cards */
+  .obj-box {
+    padding: 14px 16px; background: #fff; border-radius: 10px;
+    border: 1px solid #d3d1c7; margin-bottom: 12px;
+    font-size: 14px; line-height: 1.65; color: #5f5e5a;
+  }
+  .obj-box strong { font-weight: 600; color: #2c2c2a; display: block; margin-bottom: 6px; }
+
+  .item {
+    padding: 9px 13px; border-left: 2.5px solid var(--ph-color);
+    margin-bottom: 8px; background: #fff; border-radius: 0 8px 8px 0;
+    font-size: 14px; line-height: 1.55;
+  }
+  .item.metric { border-left-color: #ba7517; background: #faeeda; color: #633806; }
+  .item.resist { border-left-color: #993c1d; background: #faece7; color: #712b13; }
+
+  .tag {
+    display: inline-block; padding: 3px 10px; border-radius: 20px;
+    font-size: 12px; margin: 3px 4px 3px 0;
+    background: var(--ph-light); color: var(--ph-dark);
+    border: 1px solid var(--ph-color);
+  }
+
+  .slbl { font-size: 12px; font-weight: 600; margin-bottom: 8px; color: #5f5e5a; }
+  .slbl.metric { color: #ba7517; }
+  .slbl.resist { color: #993c1d; }
+
+  /* Framework table */
+  .fw-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 4px; }
+  .fw-table th {
+    padding: 8px 10px; text-align: left; font-size: 11px; font-weight: 600;
+    letter-spacing: 0.04em; border-bottom: 2px solid #d3d1c7; color: #5f5e5a;
+    background: #f5f5f3;
+  }
+  .fw-table td {
+    padding: 9px 10px; vertical-align: top; border-bottom: 1px solid #e8e7e3;
+    line-height: 1.5;
+  }
+  .fw-table tr:last-child td { border-bottom: none; }
+  .fw-table tr:nth-child(even) td { background: #f9f9f7; }
+  .fw-table .elem { font-weight: 600; color: #2c2c2a; }
+  .fw-table .wwd { color: #0f6e56; font-style: italic; font-size: 12px; }
+  .fw-table .tier-na { color: #c0bfb8; }
+  .fw-table .tier { color: #2c2c2a; }
+
+  /* KPI table */
+  .kpi-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 4px; }
+  .kpi-table th {
+    padding: 8px 10px; text-align: left; font-size: 11px; font-weight: 600;
+    letter-spacing: 0.04em; border-bottom: 2px solid #d3d1c7; color: #5f5e5a;
+    background: #f5f5f3;
+  }
+  .kpi-table td {
+    padding: 9px 10px; vertical-align: top; border-bottom: 1px solid #e8e7e3;
+    line-height: 1.5;
+  }
+  .kpi-table tr:last-child td { border-bottom: none; }
+  .kpi-table tr:nth-child(even) td { background: #faf9f6; }
+  .kpi-cat-row td {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.05em;
+    color: #ba7517; background: #faeeda !important; padding: 5px 10px;
+    text-transform: uppercase;
+  }
+  .kpi-table .kpi-name { font-weight: 600; color: #2c2c2a; }
+  .kpi-table .kpi-src { color: #888780; font-size: 12px; }
+  .kpi-table .kpi-note { color: #888780; font-size: 12px; font-style: italic; }
+
+  .resist-note {
+    font-size: 12px; font-weight: 600; color: #993c1d; margin-bottom: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="page-title">Managed services</div>
+  <h1 class="page-heading">SOW adoption model</h1>
+  <p class="page-sub">Each phase builds on the last. Win on the transactional before claiming the strategic — attempting phases 3–4 before phases 1–2 are demonstrably working is the most common failure mode.</p>
+
+  <div class="phase-nav" id="phaseNav"></div>
+
+  <div class="cum-bar">
+    <span class="cum-bar-label">Cumulative scope</span>
+    <div class="cum-dots" id="cumDots"></div>
+  </div>
+
+  <div id="phaseHdr" class="phase-hdr"></div>
+  <div id="metaChips" class="meta-chips"></div>
+
+  <div class="stabs" id="stabs"></div>
+  <div id="content"></div>
+</div>
+
+<script>
+const PHASES = [
+  {
+    num: "1", color: "#1d9e75", light: "#e1f5ee", dark: "#085041",
+    title: "Phase 1 — Worker classification",
+    timeline: "2–4 months", mandate: "Establish ground truth",
+    obj: "Establish ground truth on what's actually happening in the current state. Surface savings leakage and misclassified buying channels without threatening ownership.",
+    stk: "Low threat to Procurement — framed as diagnosis, not displacement. Hiring managers largely unaffected. Sponsors use this phase to build the business case for mandate.",
+    acts: [
+      "Audit active SOWs against classification criteria (project-based vs. staff aug, fixed deliverable vs. T&M)",
+      "Flag SOWs that should have been routed through contingent/staffing channels",
+      "Quantify savings leakage: rate variance, missing competitive tension, auto-renewals, scope creep with no price adjustment",
+      "Deploy tooling to systematize classification (intake forms, decision trees, VMS/platform tagging)",
+      "Establish baseline data: spend by supplier, category, business unit, contract type",
+    ],
+    tools: ["SOW intake/classification tool (rule-based scoring)","Spend analytics / data normalization layer","Stakeholder-facing dashboard (visibility only — no control)"],
+    metrics: [
+      "% of active SOWs classified",
+      "Estimated savings leakage identified ($)",
+      "Misrouted contracts flagged and documented",
+      "Baseline spend and supplier count established",
+    ],
+    resist: [
+      '"Our SOWs are different / too complex to classify"',
+      "Delays providing contract data",
+      'Procurement classifying everything as "strategic" to avoid scrutiny',
+    ],
+    fw: [
+      {elem:"Decision tree", wwd:"Integrate front-end decision technology",
+       admin:"—", mgmt:"Support development of optimized decision tree, reporting on channel engagement",
+       proc:"Responsible for reviewing the 'work to be done' and advising on recommended channel, contracting/engagement and supplier options"},
+      {elem:"Contract/engagement structure verification", wwd:"Report on supplier performance, cost optimization and opportunities to develop the supply chain",
+       admin:"—", mgmt:"Consult on contract/engagement structure best practices",
+       proc:"Responsible for validation of proposed contract/engagement structure to ensure compliance with policy and legislation"},
+    ],
+    kpis: [
+      {cat:"Program management", name:"Worker classification distribution", desc:"Percentage of correctly classified resources (e.g., contractor vs. T&M vs. deliverable-based)", src:"VMS (MSP) / Workday (Client)", note:""},
+      {cat:"Program management", name:"Purchasing policy compliance rate", desc:"Percentage of SOWs processed outside of the program", src:"Offline", note:"Manual tracking"},
+      {cat:"Program management", name:"Spend under management", desc:"Total SOW spend managed through the MSP program vs. unmanaged spend", src:"VMS (MSP) / FMS (Client)", note:"Requires access to client spend reporting"},
+      {cat:"Compliance & governance", name:"Risk flag rate", desc:"Number of SOWs flagged for potential misclassification or non-compliance", src:"VMS (MSP)", note:"Tracking managed in CW module"},
+      {cat:"Compliance & governance", name:"Audit findings", desc:"Number and severity of issues identified during internal or external audits", src:"Offline", note:"Audit report"},
+    ],
+  },
+  {
+    num: "2", color: "#185fa5", light: "#e6f1fb", dark: "#0c447c",
+    title: "Phase 2 — Administrative processing",
+    timeline: "4–8 months", mandate: "Own execution, not sourcing",
+    obj: "Take ownership of execution and record-keeping without touching sourcing decisions. Demonstrate operational reliability — the credibility that earns the right to Phase 3.",
+    stk: "Procurement still owns sourcing and supplier relationships — no threat yet. HR/IT benefit from automation and become allies. Hiring managers see faster onboarding as a win.",
+    acts: [
+      "Ingest all executed agreements into the managed services platform (structured data, not just PDFs)",
+      "Worker identification: link individual contractors/consultants to their governing SOW",
+      "Automate worker onboarding triggered by SOW execution (system access, badge, orientation)",
+      "Automate offboarding triggered by SOW expiry or termination (access revocation, equipment return)",
+      "Build audit trail: who is working, under what agreement, at what rate, against what deliverable",
+      "Compliance monitoring: flag workers active without a current executed SOW",
+    ],
+    tools: ["VMS or SOW management platform (worker-level tracking)","HRIS / identity management integration for onboarding/offboarding triggers","Compliance dashboard (workers without valid SOW, expired agreements)"],
+    metrics: [
+      "% of workers tied to an active, executed SOW",
+      "Onboarding cycle time reduction vs. baseline",
+      "Offboarding compliance rate (access revocation within SLA)",
+      "SOW coverage rate — workers with no governing agreement (target: zero)",
+      "Data quality score in platform",
+    ],
+    resist: [
+      '"We don\'t want all workers in one system — our suppliers have their own processes"',
+      "IT/security concerns used to stall integration work",
+      "Manual workarounds maintained in parallel as a fallback",
+    ],
+    fw: [
+      {elem:"Requisition and authorization", wwd:"Integrate front-end decision technology", admin:"Ad-hoc assistance to managers in requisition process and confirming compliance with approval process", mgmt:"Providing support to assisting managers in requisition process and confirming compliance with approval process", proc:"Responsible for assisting managers in requisition process and confirming compliance with approval process"},
+      {elem:"Vendor/supplier contracting — pay agent", wwd:"Report on supplier performance, cost optimization and opportunities to develop the supply chain", admin:"Responsible for negotiation and execution of pay agent agreement and admin support to client execution of MSA/TPA", mgmt:"Responsible for negotiation and execution of pay agent agreement and negotiation support to client in execution of MSA/TPA", proc:"Responsible for negotiation and execution of pay agent agreement and admin support to client in negotiation and execution of MSA/TPA"},
+      {elem:"Statement of work", wwd:"Prepare statements of work & contracts for delivery of services, uploading into client VMS platform", admin:"Responsible for capture and upload of statement of work", mgmt:"Responsible for reporting volume, quality of SOWs, highlighting opportunities for optimization", proc:"Responsible, with managers, for defining, drafting, negotiation of statement of work"},
+      {elem:"Compliance confirmation", wwd:"Extract the people-related data & highlight gaps and support the client to get them filled", admin:"Responsible for confirming workers/contractors/vendor personnel have completed background screening in compliance with policy", mgmt:"Responsible for confirming workers/contractors/vendor personnel have completed background screening in compliance with policy", proc:"Responsible for confirming workers/contractors/vendor personnel have completed background screening in compliance with policy"},
+      {elem:"Onboard", wwd:"Extract the people-related data & highlight gaps and support the client to get them filled", admin:"Capture of workers/contractors/vendor personnel onto client-side system to initiate onboarding processes", mgmt:"Capture of workers/contractors/vendor personnel onto client-side system to initiate onboarding processes", proc:"Responsible for capture of workers/contractors/vendor personnel details onto client-side system to initiate onboarding processes"},
+      {elem:"Start and induction", wwd:"Extract the people-related data & highlight gaps and support the client to get them filled", admin:"Responsible for confirming start of workers/contractors/vendor personnel", mgmt:"Responsible for confirming start of workers/contractors/vendor personnel", proc:"Responsible for confirming start of workers/contractors/vendor personnel"},
+      {elem:"Query support", wwd:"Manage stakeholder, procurement and vendor enquiries", admin:"Responsible for providing first-line query management support to workers/contractors/vendor personnel", mgmt:"Responsible for providing first-line query management support to workers/contractors/vendor personnel", proc:"Responsible for providing first-line query management support to workers/contractors/vendor personnel"},
+      {elem:"Amendments/extensions/changes", wwd:"Proactively manage the data in the VMS tech platform", admin:"Responsible for capture of amendments/extensions/changes onto client-side system", mgmt:"Responsible for reporting of SOWs that require changes/amendments", proc:"Responsible for reporting and management of SOWs that require changes/amendments"},
+      {elem:"Time/materials/milestone/expense", wwd:"Proactively manage the data in the VMS tech platform", admin:"Responsible for capturing and calculating time/materials/milestones/expenses", mgmt:"Responsible for capturing and calculating time/materials/milestones/expenses", proc:"Responsible for capturing and calculating time/materials/milestones/expenses"},
+      {elem:"Pay bill/payroll/benefits — principal", wwd:"Report on data consistency, quality & track client projects", admin:"Responsible for distribution of payments to vendors/suppliers/workers/contractors", mgmt:"Responsible for distribution of payments to vendors/suppliers/workers/contractors", proc:"Responsible for distribution of payments to vendors/suppliers/workers/contractors"},
+      {elem:"Pay bill/payroll/benefits — pay agent", wwd:"Report on data consistency, quality & track client projects", admin:"Accountable for distribution of payments to vendors/suppliers/workers/contractors", mgmt:"Accountable for distribution of payments to vendors/suppliers/workers/contractors", proc:"Accountable for distribution of payments to vendors/suppliers/workers/contractors"},
+      {elem:"Invoice/payment — pay agent", wwd:"Report on data consistency, quality & track client projects", admin:"Responsible for generation/submission of invoices and collection of payments for vendors/suppliers/workers/contractors", mgmt:"Responsible for generation/submission of invoices and collection of payments for vendors/suppliers/workers/contractors", proc:"Responsible for generation/submission of invoices and collection of payments for vendors/suppliers/workers/contractors"},
+      {elem:"Tracking", wwd:"Manage the end-to-end resourcing process", admin:"Responsible for tracking and reporting of workers/contractors/vendor personnel", mgmt:"Responsible for tracking and reporting of workers/contractors/vendor personnel, advising on improvements", proc:"Responsible for tracking and reporting of workers/contractors/vendor personnel, facilitation of fixes"},
+      {elem:"Offboard", wwd:"Manage the end-to-end resourcing process", admin:"Responsible for close of workers/contractors/vendor personnel records on client-side system to initiate offboarding processes", mgmt:"Responsible for close of workers/contractors/vendor personnel records on client-side system to initiate offboarding processes", proc:"Responsible for close of workers/contractors/vendor personnel records on client-side system to initiate offboarding processes"},
+    ],
+    kpis: [
+      {cat:"Program management", name:"SOW intake form processing time", desc:"Average time taken by MSP staff to process intake form", src:"TT System (MSP) / VMS (MSP)", note:""},
+      {cat:"Program management", name:"Onboarding time", desc:"Time from SOW execution to resource start date", src:"VMS (MSP)", note:""},
+      {cat:"Program management", name:"SOW utilization rate", desc:"Ratio of actual spend vs. forecasted spend across SOWs", src:"VMS (MSP)", note:""},
+      {cat:"Operational efficiency", name:"Automation coverage", desc:"Percentage of tasks completed through the VMS or internal systems vs. manual workarounds", src:"VMS (MSP) / Offline", note:""},
+      {cat:"Operational efficiency", name:"SOW approval time", desc:"Time taken from selection to internal and external stakeholders to execute SOWs", src:"VMS (MSP)", note:"Only applicable to source activities performed in the VMS"},
+      {cat:"Operational efficiency", name:"SOW closure time", desc:"Time taken to close out completed SOWs, including final invoicing and deliverables", src:"VMS (MSP)", note:""},
+      {cat:"Program adoption", name:"Hiring manager inquiry response time", desc:"Average time to respond to hiring manager questions or support requests", src:"TT System (MSP)", note:""},
+      {cat:"Program adoption", name:"Supplier issue resolution time", desc:"Time taken to resolve supplier-related issues or escalations", src:"TT System (MSP)", note:""},
+      {cat:"Compliance & governance", name:"Legal agreement routing", desc:"Rate of correctly routed contracts and agreements requiring legal review/approval", src:"Icertis (MSP)", note:""},
+      {cat:"Reporting & data integrity", name:"Data accuracy rate", desc:"Percentage of SOW records free from errors or inconsistencies", src:"VMS (MSP)", note:"Amendments executed by MSP team to correct errors"},
+      {cat:"Reporting & data integrity", name:"Reporting timeliness", desc:"On-time delivery of SOW-related reports to stakeholders", src:"Offline", note:""},
+      {cat:"Reporting & data integrity", name:"System downtime", desc:"Total time MSP systems are unavailable or experiencing issues", src:"VMS (MSP)", note:"Beeline owns metric"},
+    ],
+  },
+  {
+    num: "3", color: "#534ab7", light: "#eeedfe", dark: "#26215c",
+    title: "Phase 3 — Sourcing assistance (tail-end spend)",
+    timeline: "6–12 months", mandate: "Lead sub-threshold sourcing",
+    obj: "Take the lead on sourcing activity below a defined spend threshold. Demonstrate that the managed services function can do sourcing well — not just process it. Build the PSL.",
+    stk: "Identity friction begins here. Frame as bandwidth relief, not displacement. Procurement oversight must be real (approval, not rubber stamp). Strong sponsor needed to hold the threshold line when exceptions are pushed.",
+    acts: [
+      "Negotiate and document spend threshold with Procurement (e.g., SOWs under $X led by managed services with oversight)",
+      "Develop Preferred Supplier List (PSL): qualify suppliers by category, establish rate cards, SLAs, and performance criteria",
+      "Engage hiring managers directly on sub-threshold engagements — guide supplier selection, scope definition, commercial terms",
+      "Execute sub-threshold SOWs using pre-approved templates and pre-identified supplier panels",
+      "Track and report sourcing outcomes: savings vs. baseline, cycle time, supplier performance",
+      "Begin category-level spend analysis to inform PSL expansion",
+    ],
+    tools: ["Supplier portal / PSL management","Rate card benchmarking data","Sourcing workflow tool (RFQ templates for sub-threshold use)","Savings tracking and reporting"],
+    metrics: [
+      "Threshold defined and documented (with Procurement sign-off)",
+      "PSL established — minimum 2–3 suppliers per major category",
+      "% of sub-threshold spend routed through managed services",
+      "Savings delivered vs. prior-year baseline",
+      "Hiring manager satisfaction score",
+      "Sourcing cycle time vs. benchmark",
+    ],
+    resist: [
+      "Procurement reclassifies spend upward to stay above the threshold",
+      '"Our suppliers won\'t work with a third-party intermediary"',
+      "Hiring managers bypass the process with direct supplier calls before engaging managed services",
+      "Exception volume grows until the threshold is meaningless",
+    ],
+    fw: [
+      {elem:"Workforce and demand planning", wwd:"Provide insight and recommend projects to reduce costs", admin:"—", mgmt:"Support demand planning", proc:"Responsible, with managers, for identifying projected workforce demand"},
+      {elem:"Market insights", wwd:"Provide insight and recommend projects to reduce costs", admin:"—", mgmt:"Provide annual/bi-annual market insights", proc:"Responsible for periodic and ad hoc insights into skills availability/heat map and speed/cost to engage"},
+      {elem:"Salary/rate/cost benchmarking", wwd:"Integrate dynamic pricing & benchmarking technology", admin:"—", mgmt:"Provide annual/bi-annual benchmark for categories", proc:"Responsible for providing periodic cost benchmark/analysis"},
+      {elem:"Vendor/supplier strategy", wwd:"Integrate dynamic pricing & benchmarking technology", admin:"—", mgmt:"Support refinement and establishment of category strategies via workshops and expertise", proc:"Responsible for defining, developing and enacting a supplier engagement strategy including performance reviews and benchmarking to identify, onboard, measure and audit suppliers including diverse and minority-owned"},
+      {elem:"Vendor/supplier contracting — principal", wwd:"Report on supplier performance, cost optimization and opportunities to develop the supply chain", admin:"Administration of execution of MSA/TPA", mgmt:"Administration of execution of MSA/TPA, and input to negotiation approach as needed", proc:"Responsible for negotiation and execution of MSA/TPA"},
+      {elem:"Sourcing toolkits", wwd:"Integrate front-end decision technology", admin:"—", mgmt:"Review and refine existing sourcing toolkits", proc:"Responsible for designing, generating and distributing a sourcing toolkit for managers"},
+      {elem:"Consultation — role/project scoping", wwd:"Tender the requirements to the supply chain", admin:"—", mgmt:"Consult on project scoping best practices", proc:"Responsible for consulting with manager to define scope of work including deliverables"},
+      {elem:"Vendor/supplier/bidder engagement", wwd:"Provide insight and recommend projects to reduce costs", admin:"—", mgmt:"Support the identification and vetting of vendors/suppliers/bidders", proc:"Responsible, with managers, for identifying and engaging suitable vendors/suppliers/bidders"},
+    ],
+    kpis: [
+      {cat:"Program management", name:"SOW cycle time", desc:"Average time from SOW sourcing initiation to full execution", src:"VMS (MSP)", note:"Only applicable to source activities performed in the VMS"},
+      {cat:"Operational efficiency", name:"SOW sourcing time", desc:"Time taken from initiation to supplier selection", src:"VMS (MSP)", note:"Only applicable to source activities performed in the VMS"},
+      {cat:"Financial & cost", name:"Budget adherence", desc:"Percentage of SOWs completed within the approved budget", src:"VMS (MSP)", note:"SOWs completed that do not process a budget-related CCN"},
+      {cat:"Financial & cost", name:"Rate card compliance", desc:"Internal tracking of placements made within approved rate structures", src:"", note:""},
+      {cat:"Financial & cost", name:"Spend forecast accuracy", desc:"Accuracy of projected vs. actual SOW spend under management", src:"PowerBI (MSP)", note:""},
+      {cat:"Financial & cost", name:"Cost avoidance tracking", desc:"Internal documentation of cost avoidance actions (e.g., preventing off-program hires)", src:"VMS (MSP)", note:"Tracking managed in SOW and CW modules"},
+      {cat:"Program adoption", name:"Business unit adoption rate", desc:"Percentage of business units actively using the SOW program", src:"VMS (MSP) / FMS (Client)", note:"Requires access to client spend reporting"},
+      {cat:"Program adoption", name:"Stakeholder satisfaction score", desc:"Feedback from hiring managers and procurement on SOW process and outcomes", src:"VMS (MSP)", note:"Surveys need to be configured"},
+      {cat:"Program adoption", name:"Supplier spend distribution by BU", desc:"Supplier spend broken down across business unit", src:"VMS (MSP)", note:""},
+      {cat:"Reporting & data integrity", name:"Dashboard utilization rate", desc:"Frequency of use of SOW analytics dashboards by stakeholders", src:"PowerBI (MSP)", note:""},
+      {cat:"Reporting & data integrity", name:"MSP resource forecast accuracy", desc:"Accuracy of MSP's projected vs. actual resource usage", src:"PowerBI (MSP)", note:""},
+    ],
+  },
+  {
+    num: "4", color: "#993c1d", light: "#faece7", dark: "#4a1b0c",
+    title: "Phase 4 — RFx support and strategic sourcing partnership",
+    timeline: "12+ months", mandate: "Partner on strategic spend",
+    obj: "Extend capabilities into competitive sourcing events and strategic spend. The patterning model: managed services runs the process, Procurement owns the decision.",
+    stk: "Procurement must see managed services as a capability multiplier, not a replacement. Sponsor role shifts from mandate-enforcer to relationship steward. Procurement leaders who resisted Phase 3 often become advocates here.",
+    acts: [
+      "Lead or co-lead RFx processes (RFI, RFP, RFQ) for above-threshold spend in partnership with Procurement",
+      "Conduct bid management: supplier outreach, response evaluation, negotiation support",
+      "Develop category strategies for high-spend areas with Procurement category managers",
+      "Pattern with Procurement: managed services runs the process, Procurement owns the decision",
+      "Feed market intelligence and supplier performance data back into PSL and rate benchmarks",
+      "Establish governance cadence: regular review of sourcing outcomes, threshold adjustments, PSL changes",
+    ],
+    tools: ["RFx platform (e-sourcing)","Contract lifecycle management (CLM) integration","Supplier performance management / scorecard","Category spend analytics"],
+    metrics: [
+      "Number and value of RFx events supported",
+      "Savings delivered on above-threshold competitive events",
+      "Time-to-award vs. benchmark",
+      "Procurement satisfaction with partnership model (quarterly)",
+      "Category coverage: % of spend with documented category strategy",
+      "PSL utilization rate",
+    ],
+    resist: [
+      "Procurement wants managed services in support role only — reverting to Phase 2 dynamic",
+      "Threshold creep upward as managed services takes on more without formal recognition",
+      "Managed services seen as competing for Procurement headcount rather than augmenting it",
+    ],
+    fw: [
+      {elem:"RFx launch", wwd:"Implement client projects delivering agreed benefits", admin:"—", mgmt:"Responsible for the facilitation of the RFx", proc:"Responsible, with managers, for defining, drafting and launching RFx process and documents to selected vendors/suppliers/bidders"},
+      {elem:"RFx review/assessment", wwd:"Implement client projects delivering agreed benefits", admin:"—", mgmt:"Responsible for facilitation of RFx assessment", proc:"Responsible, with managers, for reviewing and assessing RFx responses from vendors/suppliers/bidders to identify shortlisted bidders"},
+      {elem:"RFx negotiation", wwd:"Negotiate options for supply", admin:"—", mgmt:"Support negotiations", proc:"Responsible, with managers, for negotiation with vendors/suppliers/bidders to identify preferred bidders"},
+    ],
+    kpis: [
+      {cat:"Operational efficiency", name:"Bid activity ratio", desc:"Ratio of SOWs that are sourced through VMS", src:"VMS (MSP)", note:""},
+      {cat:"Operational efficiency", name:"Bid (RFP) pipeline efficiency", desc:"Ratio of acceptable bids received per opportunity", src:"VMS (MSP)", note:""},
+      {cat:"Financial & cost", name:"Invoice accuracy rate", desc:"Percentage of invoices aligned with agreed milestones, rates, and deliverables processed without errors", src:"FMS (Client) / Supplier", note:"Invoice error rate reporting from client AP"},
+      {cat:"Supplier & vendor performance", name:"Milestone achievement rate", desc:"Percentage of deliverables or milestones completed on time", src:"VMS (MSP)", note:""},
+      {cat:"Supplier & vendor performance", name:"Vendor performance score", desc:"Composite score based on quality, timeliness, and communication", src:"Offline", note:"Surveys need to be configured"},
+      {cat:"Supplier & vendor performance", name:"SOW renewal rate", desc:"Percentage of SOWs extended or renewed due to successful delivery (repeat activity)", src:"VMS (MSP)", note:""},
+      {cat:"Supplier & vendor performance", name:"Dispute resolution time", desc:"Average time to resolve issues or disputes related to SOWs", src:"TT System (MSP)", note:""},
+      {cat:"Supplier & vendor performance", name:"CCN / change request ratio", desc:"Ratio of the change requests processed per SOW", src:"VMS (MSP)", note:""},
+    ],
+  },
+];
+
+const SECTIONS = ["Overview","Activities & tooling","Metrics","Resistance signals","Framework elements","KPIs"];
+let cp = 0, cs = 0;
+
+function applyPhaseVars(p) {
+  document.documentElement.style.setProperty('--ph-color', p.color);
+  document.documentElement.style.setProperty('--ph-light', p.light);
+  document.documentElement.style.setProperty('--ph-dark', p.dark);
+}
+
+function buildNav() {
+  const nav = document.getElementById('phaseNav');
+  const dots = document.getElementById('cumDots');
+  PHASES.forEach((p, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'pbtn' + (i === 0 ? ' on' : '');
+    btn.innerHTML = `Phase ${p.num}<span>${p.title.replace(/Phase \d+ — /,'')}</span>`;
+    btn.onclick = () => setPhase(i);
+    nav.appendChild(btn);
+
+    const dot = document.createElement('div');
+    dot.className = 'sdot' + (i === 0 ? ' on' : '');
+    dot.id = 'dot' + i;
+    dots.appendChild(dot);
+  });
+}
+
+function buildSectionTabs() {
+  const tabs = document.getElementById('stabs');
+  SECTIONS.forEach((s, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'stab' + (i === 0 ? ' on' : '');
+    btn.textContent = s;
+    btn.onclick = () => setSection(i);
+    tabs.appendChild(btn);
+  });
+}
+
+function setPhase(i) {
+  cp = i;
+  document.querySelectorAll('.pbtn').forEach((b,j) => b.classList.toggle('on', j===i));
+  for (let d=0;d<4;d++) document.getElementById('dot'+d).classList.toggle('on', d<=i);
+  applyPhaseVars(PHASES[i]);
+  render();
+}
+
+function setSection(i) {
+  cs = i;
+  document.querySelectorAll('.stab').forEach((b,j) => b.classList.toggle('on', j===i));
+  render();
+}
+
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function render() {
+  const p = PHASES[cp];
+  document.getElementById('phaseHdr').textContent = p.title;
+  document.getElementById('metaChips').innerHTML =
+    `<span class="chip">⏱ ${p.timeline}</span>` +
+    `<span class="chip">Focus: ${p.mandate}</span>` +
+    (cp > 0 ? `<span class="chip" style="color:#888780;font-size:11px">Includes all previous phases</span>` : '');
+
+  let h = '';
+
+  if (cs === 0) {
+    h += `<div class="obj-box"><strong>Objective</strong>${esc(p.obj)}</div>`;
+    h += `<div class="obj-box"><strong>Stakeholder dynamics</strong>${esc(p.stk)}</div>`;
+
+  } else if (cs === 1) {
+    h += `<div class="slbl">Key activities</div>`;
+    p.acts.forEach(a => h += `<div class="item">${esc(a)}</div>`);
+    h += `<div class="slbl" style="margin-top:16px">Tooling</div>`;
+    p.tools.forEach(t => h += `<span class="tag">${esc(t)}</span>`);
+
+  } else if (cs === 2) {
+    h += `<div class="slbl metric">Success metrics</div>`;
+    p.metrics.forEach(m => h += `<div class="item metric">${esc(m)}</div>`);
+
+  } else if (cs === 3) {
+    h += `<div class="resist-note">Watch for these — they signal the resistance is winning</div>`;
+    p.resist.forEach(r => h += `<div class="item resist">${esc(r)}</div>`);
+
+  } else if (cs === 4) {
+    h += `<table class="fw-table"><thead><tr>
+      <th style="width:20%">Element</th>
+      <th style="width:22%">Service area</th>
+      <th style="width:19%">Admin tier</th>
+      <th style="width:19%">Management tier</th>
+      <th style="width:20%">Procurement tier</th>
+    </tr></thead><tbody>`;
+    p.fw.forEach(f => {
+      const na = (v) => v === '—' ? `<span class="tier-na">—</span>` : `<span class="tier">${esc(v)}</span>`;
+      h += `<tr>
+        <td><span class="elem">${esc(f.elem)}</span><br><span class="wwd">${esc(f.wwd)}</span></td>
+        <td class="wwd">${esc(f.wwd)}</td>
+        <td>${na(f.admin)}</td>
+        <td>${na(f.mgmt)}</td>
+        <td>${na(f.proc)}</td>
+      </tr>`;
+    });
+    h += `</tbody></table>`;
+
+  } else if (cs === 5) {
+    h += `<table class="kpi-table"><thead><tr>
+      <th style="width:22%">Metric</th>
+      <th style="width:13%">Category</th>
+      <th style="width:35%">Description</th>
+      <th style="width:17%">Data source</th>
+      <th style="width:13%">Notes</th>
+    </tr></thead><tbody>`;
+    let lastCat = null;
+    p.kpis.forEach(k => {
+      if (k.cat !== lastCat) {
+        h += `<tr class="kpi-cat-row"><td colspan="5">${esc(k.cat)}</td></tr>`;
+        lastCat = k.cat;
+      }
+      h += `<tr>
+        <td class="kpi-name">${esc(k.name)}</td>
+        <td class="kpi-src">${esc(k.cat)}</td>
+        <td>${esc(k.desc)}</td>
+        <td class="kpi-src">${esc(k.src)}</td>
+        <td class="kpi-note">${esc(k.note)}</td>
+      </tr>`;
+    });
+    h += `</tbody></table>`;
+  }
+
+  document.getElementById('content').innerHTML = h;
+}
+
+buildNav();
+buildSectionTabs();
+applyPhaseVars(PHASES[0]);
+render();
+</script>
+</body>
+</html>
